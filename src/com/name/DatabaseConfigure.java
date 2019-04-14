@@ -3,52 +3,86 @@ package com.name;
 import com.name.entities.Card;
 
 import java.io.*;
+import java.util.Arrays;
+import java.util.Comparator;
+import java.util.List;
+import java.util.stream.Collectors;
 
 public class DatabaseConfigure {
     private final static int NUM_OF_FIELDS = 2;
     private final static int LONG_SIZE = 8;
     private static File data;
     private static File index;
-    private static File ruSearch;
+    private static File rusSearch;
     private static File engSearch;
 
     static {
         data = new File("Server\\FieldsOfCards.data");
         index = new File("Server\\Indexes.data");
-        ruSearch = new File("Server\\RuSearch.data");
+        rusSearch = new File("Server\\RuSearch.data");
         engSearch = new File("Server\\EngSearch.data");
     }
 
     private DatabaseConfigure() {}
 
+    //==================================================================================================================
     public static void buildDatabase(Card[] cards) {
         if(!data.exists() && !index.exists()) {
             RandomAccessFile dataStream = null;
             RandomAccessFile indexStream = null;
-            RandomAccessFile ruStream = null;
-            RandomAccessFile engStream = null;
+
             try {
                 data.createNewFile();
                 index.createNewFile();
-                ruSearch.createNewFile();
+
+                rusSearch.createNewFile();
                 engSearch.createNewFile();
 
                 dataStream = new RandomAccessFile(data, "rw");
                 indexStream = new RandomAccessFile(index, "rw");
-                ruStream = new RandomAccessFile(index, "rw");
-                engStream = new RandomAccessFile(index, "rw");
 
+                List<SearchItem> rusList = Arrays.stream(cards).map(card -> new SearchItem(card.getTranslation()))
+                        .sorted(Comparator.comparing(SearchItem::getText))
+                        .distinct()
+                        .collect(Collectors.toList());
 
+                List<SearchItem> engList = Arrays.stream(cards).map(card -> new SearchItem(card.getWord()))
+                        .sorted(Comparator.comparing(SearchItem::getText))
+                        .distinct()
+                        .collect(Collectors.toList());
 
-                for(Card card: cards) {
-                    dataStream.write(card.getWord().getBytes());
+                for(int i = cards.length - 1; i >= 0; --i) {
+                    dataStream.write(cards[i].getWord().getBytes());
                     System.out.print(dataStream.getFilePointer() + " ");
                     indexStream.writeLong(dataStream.getFilePointer());
 
-                    dataStream.write(card.getTranslation().getBytes());
+                    dataStream.write(cards[i].getTranslation().getBytes());
                     System.out.println(dataStream.getFilePointer());
                     indexStream.writeLong(dataStream.getFilePointer());
+
+                    for(SearchItem item: rusList) {
+                        if (item.getText() == cards[i].getTranslation()){
+                            item.addId(i);
+                            break;
+                        }
+                    }
+
+                    for(SearchItem item: engList) {
+                        if (item.getText() == cards[i].getWord()){
+                            item.addId(i);
+                            break;
+                        }
+                    }
                 }
+
+                ObjectOutputStream searchStream = new ObjectOutputStream(new FileOutputStream(rusSearch));
+                searchStream.writeObject(rusList);
+                searchStream.close();
+
+                searchStream = new ObjectOutputStream(new FileOutputStream((engSearch)));
+                searchStream.writeObject(engList);
+                searchStream.close();
+
             } catch (IOException e) {
                 e.printStackTrace();
             } finally {
@@ -65,6 +99,7 @@ public class DatabaseConfigure {
             }
         }
     }
+    //==================================================================================================================
 
     //Future | params: String word or translation, returns: Card[] that matches with word or phrase
     public static Card read(int entryNo) throws IOException {
