@@ -33,14 +33,14 @@ public class Test {
         for(int i = cards.length - 1; i >= 0; --i) {
             for(SearchItem item: rusList) {
                 if (item.getText() == cards[i].getTranslation()){
-                    item.addId(i);
+                    item.addCardId(i);
                     break;
                 }
             }
 
             for(SearchItem item: engList) {
                 if (item.getText() == cards[i].getWord()){
-                    item.addId(i);
+                    item.addCardId(i);
                     break;
                 }
             }

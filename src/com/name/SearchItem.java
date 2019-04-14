@@ -1,12 +1,13 @@
 package com.name;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 
-public class SearchItem {
+public class SearchItem implements Serializable {
     private String text;
     private ArrayList<Integer> ides;
 
-    SearchItem(String text) {
+    public SearchItem(String text) {
         this.text = text;
         this.ides = new ArrayList<>();
     }
@@ -30,7 +31,7 @@ public class SearchItem {
         return text.hashCode();
     }
 
-    void addId(int id){
+    public void addCardId(int id){
         ides.add(id);
     }
 

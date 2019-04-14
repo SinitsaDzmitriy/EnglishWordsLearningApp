@@ -1,5 +1,6 @@
 package com.name.database;
 
+import com.name.SearchItem;
 import com.name.entities.Card;
 
 import java.io.*;
@@ -23,11 +24,12 @@ public class DatabaseConfigure {
         engSearch = new File("Server\\EngSearch.data");
     }
 
-    private DatabaseConfigure() {}
+    private DatabaseConfigure() {
+    }
 
     //==================================================================================================================
     public static void buildDatabase(Card[] cards) {
-        if(!data.exists() && !index.exists()) {
+        if (!data.exists() && !index.exists()) {
             RandomAccessFile dataStream = null;
             RandomAccessFile indexStream = null;
 
@@ -51,7 +53,7 @@ public class DatabaseConfigure {
                         .distinct()
                         .collect(Collectors.toList());
 
-                for(int i = cards.length - 1; i >= 0; --i) {
+                for (int i = cards.length - 1; i >= 0; --i) {
                     dataStream.write(cards[i].getWord().getBytes());
                     System.out.print(dataStream.getFilePointer() + " ");
                     indexStream.writeLong(dataStream.getFilePointer());
@@ -60,16 +62,16 @@ public class DatabaseConfigure {
                     System.out.println(dataStream.getFilePointer());
                     indexStream.writeLong(dataStream.getFilePointer());
 
-                    for(SearchItem item: rusList) {
-                        if (item.getText() == cards[i].getTranslation()){
-                            item.addId(i);
+                    for (SearchItem item : rusList) {
+                        if (item.getText() == cards[i].getTranslation()) {
+                            item.addCardId(i);
                             break;
                         }
                     }
 
-                    for(SearchItem item: engList) {
-                        if (item.getText() == cards[i].getWord()){
-                            item.addId(i);
+                    for (SearchItem item : engList) {
+                        if (item.getText() == cards[i].getWord()) {
+                            item.addCardId(i);
                             break;
                         }
                     }
@@ -87,54 +89,38 @@ public class DatabaseConfigure {
                 e.printStackTrace();
             } finally {
                 try {
-                    if(dataStream != null) {
+                    if (dataStream != null) {
                         dataStream.close();
                     }
-                    if(indexStream != null) {
+                    if (indexStream != null) {
                         indexStream.close();
                     }
-                } catch(IOException e) {
+                } catch (IOException e) {
                     System.err.println("Error closing files");
                 }
             }
         }
     }
-    //==================================================================================================================
 
     //Future | params: String word or translation, returns: Card[] that matches with word or phrase
-    public static Card read(int entryNo) throws IOException {
-            if(data.exists() && index.exists()) {
-                // TODO для entryNo = 1 не сработает!!!
-                RandomAccessFile dataStream = new RandomAccessFile(data, "r");
-                RandomAccessFile indexStream = new RandomAccessFile(index, "r");
+    public static Card read(int entryNo) throws IOException{
+        Card card = null;
 
-
-                long pos = LONG_SIZE * (NUM_OF_FIELDS * entryNo - 1);
-                System.out.println("position = " + pos);
-                System.out.println("file length = "  + " " + index.length());
-
+        if (data.exists() && index.exists()) {
+            try (RandomAccessFile dataStream = new RandomAccessFile(data, "r");
+                 RandomAccessFile indexStream = new RandomAccessFile(index, "r")) {
+                long pos = (entryNo == 0) ? 0 : LONG_SIZE * (NUM_OF_FIELDS * entryNo - 1);
                 indexStream.seek(pos);
-
                 long[] labels = new long[NUM_OF_FIELDS + 1];
-                for(int i = 0; i <= NUM_OF_FIELDS; ++i) {
+
+                for (int i = 0; i <= NUM_OF_FIELDS; ++i) {
                     labels[i] = indexStream.readLong();
                 }
 
-                System.out.println("my labels: ");
-                for(long label: labels) {
-                    System.out.print(label + " ");
-                }
-                System.out.println();
-
                 // TODO заполнение массива fields в цикле for
-
-                dataStream.seek(labels[0]);
 
                 int wordLength = (int) (labels[1] - labels[0]);
                 int translationLength = (int) (labels[2] - labels[1]);
-
-                System.out.println("word = " + wordLength);
-                System.out.println("translation = " + translationLength);
 
                 byte[] wordInBytes = new byte[wordLength];
                 byte[] translationInBytes = new byte[translationLength];
@@ -144,21 +130,16 @@ public class DatabaseConfigure {
                 dataStream.read(wordInBytes);
                 dataStream.read(translationInBytes);
 
-                String word = new String(wordInBytes);
+                card = new Card(new String(wordInBytes),
+                        new String(translationInBytes));
 
-                Card card = new Card(word,
-                                     new String(translationInBytes));
-                dataStream.close();
-                indexStream.close();
-                return card;
-            } else {
-                throw new IOException("One of the database files wasn't found");
+            } catch (IOException e) {
+                e.printStackTrace();
             }
-    }
-
-
-    public static File getDatabase() {
-        return new File("");
+            return card;
+        } else {
+            throw new IOException("One of the database files wasn't found");
+        }
     }
 }
 
@@ -186,3 +167,4 @@ public class DatabaseConfigure {
 //    }
 //    return true;
 //}
+// ==================================================================================================================
