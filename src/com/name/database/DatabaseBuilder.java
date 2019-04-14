@@ -8,9 +8,21 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class DatabaseBuilder {
-    private static final File source = new File("Server\\source.txt");
+    // Technical info:
+    private final static int LONG_SIZE = 8;
+
+    // System info:
     private static final int WORD_GROUP = 2;
     private static final int TRANSLATION_GROUP = 4;
+    private static final int NUM_OF_CARD_FIELDS = 2;
+
+    // Files:
+    private static final File source = new File("Server\\source.txt");
+    private static final File data = new File("Server\\FieldsOfCards.data");
+    private static final File index = new File("Server\\Indexes.data");
+
+
+
 
     public static void main(String[] args) {
         convertTXT();
