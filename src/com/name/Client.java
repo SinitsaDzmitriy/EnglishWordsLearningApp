@@ -7,6 +7,8 @@ import java.net.UnknownHostException;
 
 public class Client {
     public static void main(String[] args) {
+
+
         Socket clientSocket = null;
 
         try {

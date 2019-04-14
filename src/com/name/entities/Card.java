@@ -9,4 +9,20 @@ public class Card implements Serializable {
         this.word = word;
         this.translation = translation;
     }
+
+    public String getWord() {
+        return word;
+    }
+    public String getTranslation() {
+        return translation;
+    }
+    public int getWordLength() {
+        return word.length();
+    }
+    public int getTranslationLength() {
+        return translation.length();
+    }
+    public String toString() {
+        return word + " - " + translation;
+    }
 }
