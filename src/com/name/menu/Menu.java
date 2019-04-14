@@ -28,7 +28,7 @@ public class Menu {
         int counter = 1;
         System.out.println("======= " + headline + " =======");
         for(AbstractCommand command: commands) {
-            System.out.println(counter + ". " + command.getDescription());
+            System.out.println(counter + ". " + command.getName());
             ++counter;
         }
 
@@ -55,13 +55,4 @@ public class Menu {
     public void execute(int itemNo) {
         commands.get(itemNo - 1).execute();
     }
-
-    public static boolean tryParse(String s) {
-        boolean flag = true;
-        try {
-            Integer.parseInt(s);
-        } catch (NumberFormatException e) {}
-        return flag;
-    }
-
 }
