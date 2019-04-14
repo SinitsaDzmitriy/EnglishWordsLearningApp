@@ -1,4 +1,4 @@
-package com.name;
+package com.name.database;
 
 import com.name.entities.Card;
 
