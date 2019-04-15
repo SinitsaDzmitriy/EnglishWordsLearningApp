@@ -14,6 +14,8 @@ public class SearchItem implements Serializable {
 
     public String getText() { return text; }
 
+    public ArrayList<Integer> getIdes() { return ides; }
+
     @Override
     public boolean equals(Object anObject) {
         if (this == anObject) {
