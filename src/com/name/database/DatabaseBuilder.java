@@ -25,7 +25,7 @@ public class DatabaseBuilder {
     public static void buildDatabase() throws FileNotFoundException {
         try {
             writeCardArrayInFiles(convertTXT());
-        } catch(FileNotFoundException e) {
+        } catch (FileNotFoundException e) {
             throw e;
         }
     }
@@ -34,6 +34,10 @@ public class DatabaseBuilder {
     // [?] Это нормально возвращать null? Альтернатива new Card[0]
     // [?] Корректна ли обработка в стиле вывод сообщения через поток System.err в catch?
 
+    /**
+     * @return null if ...
+     * @throws FileNotFoundException
+     */
     private static Card[] convertTXT() throws FileNotFoundException {
         ArrayList<Card> packOfCards = new ArrayList<>();
 
@@ -62,7 +66,8 @@ public class DatabaseBuilder {
         } catch (FileNotFoundException e) {
             throw new FileNotFoundException("File Server\\source.txt doesn't exist");
         } catch (IOException e) {
-            System.err.println("IOException occurred");
+            // TODO more info about exception
+            System.err.println("IOException occurred ");
         }
 
         Card[] cards = new Card[packOfCards.size()];
@@ -71,10 +76,18 @@ public class DatabaseBuilder {
     }
 
     private static void writeCardArrayInFiles(Card[] cards) {
-        if (data.exists()) { data.delete(); }
-        if (index.exists()) { index.delete(); }
-        if (rusSearch.exists()) { rusSearch.delete(); }
-        if (engSearch.exists()) { engSearch.delete(); }
+        if (data.exists()) {
+            data.delete();
+        }
+        if (index.exists()) {
+            index.delete();
+        }
+        if (rusSearch.exists()) {
+            rusSearch.delete();
+        }
+        if (engSearch.exists()) {
+            engSearch.delete();
+        }
 
         try {
             data.createNewFile();
