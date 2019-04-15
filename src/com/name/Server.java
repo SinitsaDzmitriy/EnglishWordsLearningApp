@@ -5,35 +5,50 @@ import java.net.ServerSocket;
 import java.net.Socket;
 
 public class Server {
+    //TODO get array of files from database
+    private static final File[] databaseFiles = { new File("Server\\FieldsOfCards.data"),
+            new File("Server\\Indexes.data"),
+            new File("Server\\RuSearch.data"),
+            new File("Server\\EngSearch.data")};
+
     public static void main(String[] args) {
         ServerSocket serverSocket = null;
         Socket clientSocket = null;
         try {
-            // [+] 1. Make the connection between Client and Server
+            // Make the connection between Client and Server
             serverSocket = new ServerSocket(8030);                                  // port - identify the process on the server
             clientSocket = serverSocket.accept();                                        // accept() listen for a connection and accept Client socket
 
-            // [+] 2. Prepare the database (file) to provide info
-            File database = new File("serverDatabase.txt");
-            FileInputStream fileInputStream = new FileInputStream(database);
-            final int FILE_LENGTH = (int) database.length();
+            final int NUM_OF_FILE_IN_DATABASE = databaseFiles.length;
 
-            // [+] 3. Prepare a stream to send data to the Client
+            // Prepare a stream to send data to the Client
             OutputStream outputStream = clientSocket.getOutputStream();
 
-            // [+] 4. Wrap output stream for base types
+            // Prepare a stream to read from database files
+            FileInputStream fileInputStream;
+
+            // Wrap output stream for base types
             DataOutputStream outputStreamWrapForBaseTypes = new DataOutputStream(outputStream);
 
-            // [+] 5.Send the length of array of bytes to the Client
-            outputStreamWrapForBaseTypes.writeInt(FILE_LENGTH);
+            // Send the number of the files
+            outputStreamWrapForBaseTypes.writeInt(NUM_OF_FILE_IN_DATABASE);
 
-            // [+] 6. Read info from the database (file) to array of bytes
-            byte[] arrayOfBytes = new byte[FILE_LENGTH];
-            fileInputStream.read(arrayOfBytes, 0, FILE_LENGTH);
+            for(int i = 0; i < NUM_OF_FILE_IN_DATABASE; ++i) {
 
-            // [+] 7. Send the array of bytes to the Client
-            outputStream.write(arrayOfBytes, 0, FILE_LENGTH);
-            
+                // Tie the file No i and the file input stream
+                fileInputStream = new FileInputStream(databaseFiles[i]);
+                final int CURRENT_FILE_LENGTH = (int) databaseFiles[i].length();
+
+                // Send the length of array of bytes to the Client
+                outputStreamWrapForBaseTypes.writeInt(CURRENT_FILE_LENGTH);
+
+                // Read info from the database (file) to array of bytes
+                byte[] arrayOfBytes = new byte[CURRENT_FILE_LENGTH];
+                fileInputStream.read(arrayOfBytes, 0, CURRENT_FILE_LENGTH);
+
+                // Send the array of bytes to the Client
+                outputStream.write(arrayOfBytes, 0, CURRENT_FILE_LENGTH);
+            }
             /*
                 FileInputStream - подкласс абстрактного класса InputStream для
                 чтения последовательности байтов
