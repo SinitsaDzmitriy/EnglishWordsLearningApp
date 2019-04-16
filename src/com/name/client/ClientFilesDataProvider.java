@@ -4,10 +4,7 @@ import com.name.common.SearchItem;
 import com.name.entities.Card;
 
 import java.io.*;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.Objects;
+import java.util.*;
 import java.util.regex.Pattern;
 
 
@@ -22,11 +19,10 @@ public class ClientFilesDataProvider extends AClientFilesDataProvider {
     private static final int ENG_SEARCH = 2;
     private static final int RUS_SEARCH = 3;
 
-    private static final String DIRECTORY = "client";
-
     private static ClientFilesDataProvider instance;
 
     private ClientFilesDataProvider() {
+        super("client");
         files = new File[NUM_OF_FILES];
         files[FIELDS] = new File(DIRECTORY + File.separator + "fields_of_cards.data");
         files[INDEX] = new File(DIRECTORY + File.separator + "index.data");
@@ -44,9 +40,10 @@ public class ClientFilesDataProvider extends AClientFilesDataProvider {
 
     /**
      * Not final version.
-     * @param   phrase the {@code String} to search in data storage.
-     * @return  an array of {@code Card} objects whose either <tt>word</tt> or <tt>translation</tt>
-     *          field matches with the given phrase; otherwise, <tt>null</tt>
+     *
+     * @param phrase the {@code String} to search in data storage.
+     * @return an array of {@code Card} objects whose either <tt>word</tt> or <tt>translation</tt>
+     * field matches with the given phrase; otherwise, <tt>null</tt>
      */
     @Override
     public Card[] find(String phrase) throws FileNotFoundException {
@@ -54,7 +51,7 @@ public class ClientFilesDataProvider extends AClientFilesDataProvider {
 
         if (phrase != null) {
             // Remove spaces at the edges
-            phrase.trim();
+            phrase = phrase.trim();
 
             // Search in case if search phrase in English
             if (Pattern.matches("[\\p{Alpha}\\s-]+", phrase)) {
@@ -70,6 +67,16 @@ public class ClientFilesDataProvider extends AClientFilesDataProvider {
         return findRes;
     }
 
+    /**
+     * Final version.
+     * @param   concreteLangSearchFile - where will be searched
+     * @param   searchPhrase - what will be searched
+     * @return  an array of {@code Card} objects. One of their field defined by file parameter
+     *          matches with the given phrase. Otherwise, <tt>null</tt>
+     * @throws  FileNotFoundException if one of the files from <tt>Data Storage</tt> wasn't found.
+     *          {@code String} message that can be obtained through{@code getMessage()} method
+     *          is a name of this file, so it ca
+     */
     private Card[] search(File concreteLangSearchFile, String searchPhrase) throws FileNotFoundException {
         // TODO exception handling
         Card[] searchRes = null;
@@ -85,11 +92,16 @@ public class ClientFilesDataProvider extends AClientFilesDataProvider {
                     Comparator.comparing(SearchItem::getPhrase));
 
             if (searchPhraseIndex >= 0) {
-                // TODO [?] Is it OK to just skip null link if a Card index is written in one file, but not exist in another one? (check read and filter below)
-                searchRes = searchList.get(searchPhraseIndex).getIdes().stream()
-                        .map(this::read)
-                        .filter(Objects::nonNull)
-                        .toArray(Card[]::new);
+                ArrayList<Integer> IDs = searchList.get(searchPhraseIndex).getIdes();
+                int numOfIDs = IDs.size();
+                ArrayList<Card> cardsInList = new ArrayList<>();
+
+                // TODO [?] It's not effective to use loop for, isn't it?
+                for(int i = 0; i < numOfIDs; ++i) {
+                    cardsInList.add(read(IDs.get(i)));
+                }
+
+                cardsInList.toArray(searchRes = new Card[cardsInList.size()]);
             }
         } catch (FileNotFoundException e) {
             // TODO Check English in this commentary
@@ -99,60 +111,84 @@ public class ClientFilesDataProvider extends AClientFilesDataProvider {
         } catch (ClassNotFoundException e) {
             System.err.println("Class" + e.getMessage() + "wasn't found.");
         } catch (IOException e) {
-            System.err.println("IOException occurred while reading " + concreteLangSearchFile + " file");
+            System.err.println("IOException occurred while reading " + concreteLangSearchFile.getName() + " file");
         }
         return searchRes;
     }
 
-    private Card read(int entryNum) {
+    private Card read(int entryNum) throws FileNotFoundException {
         Card card = null;
 
-        if (files[FIELDS].exists() && files[INDEX].exists()) {
-            try (RandomAccessFile dataStream = new RandomAccessFile(files[FIELDS], "r");
-                 RandomAccessFile indexStream = new RandomAccessFile(files[INDEX], "r")) {
+        RandomAccessFile dataStream = null;
+        RandomAccessFile indexStream = null;
 
-                long pos = (entryNum == 0) ? 0 : LONG_SIZE * (NUM_OF_CARD_FIELDS * entryNum - 1);
-                indexStream.seek(pos);
+        try {
+            dataStream = newRandomAccessReader(files[FIELDS]);
+            indexStream = newRandomAccessReader(files[INDEX]);
 
-                long[] tags = new long[NUM_OF_CARD_FIELDS + 1];
+            long pos = (entryNum == 0) ? 0 : LONG_SIZE * (NUM_OF_CARD_FIELDS * entryNum - 1);
+            indexStream.seek(pos);
 
-                for (int i = 0; i <= NUM_OF_CARD_FIELDS; ++i) {
-                    tags[i] = indexStream.readLong();
-                }
+            long[] tags = new long[NUM_OF_CARD_FIELDS + 1];
 
-                int[] lengthsOfCardFields = new int[NUM_OF_CARD_FIELDS];
-
-                for (int i = 0; i < NUM_OF_CARD_FIELDS; ++i) {
-                    lengthsOfCardFields[i] = (int) (tags[i + 1] - tags[i]);
-                }
-
-                byte[][] cardFieldsInBytes = new byte[NUM_OF_CARD_FIELDS][];
-
-                dataStream.seek(tags[0]);
-
-                for (int i = 0; i < NUM_OF_CARD_FIELDS; ++i) {
-                    cardFieldsInBytes[i] = new byte[lengthsOfCardFields[i]];
-                    dataStream.read(cardFieldsInBytes[i]);
-                }
-
-//                int wordLength = (int) (tags[1] - tags[0]);
-//                int translationLength = (int) (tags[2] - tags[1]);
-//                byte[] wordInBytes = new byte[wordLength];
-//                byte[] translationInBytes = new byte[translationLength];
-//                dataStream.seek(tags[0]);
-//                dataStream.read(wordInBytes);
-//                dataStream.read(translationInBytes);
-
-                // TODO method which get array of byte arrays and build Card object on them
-                card = new Card(new String(cardFieldsInBytes[0]),
-                        new String(cardFieldsInBytes[1]));
-            } catch (IOException e) {
-                e.printStackTrace();
+            for (int i = 0; i <= NUM_OF_CARD_FIELDS; ++i) {
+                tags[i] = indexStream.readLong();
             }
+
+            int[] lengthsOfCardFields = new int[NUM_OF_CARD_FIELDS];
+
+            for (int i = 0; i < NUM_OF_CARD_FIELDS; ++i) {
+                lengthsOfCardFields[i] = (int) (tags[i + 1] - tags[i]);
+            }
+
+            byte[][] cardFieldsInBytes = new byte[NUM_OF_CARD_FIELDS][];
+
+            dataStream.seek(tags[0]);
+
+            for (int i = 0; i < NUM_OF_CARD_FIELDS; ++i) {
+                cardFieldsInBytes[i] = new byte[lengthsOfCardFields[i]];
+                dataStream.read(cardFieldsInBytes[i]);
+            }
+
+            card = new Card(cardFieldsInBytes);
+
+        } catch (FileNotFoundException e) {
+            // TODO Send a query to a Server to restore a not found file
+            // Exception from newRandomAccessReader(File, String) method
+            // Its message contains name of file that doesn't exist
+            throw e;
+        } catch (IOException e) {
+            System.err.println("IOException occurred while" + files[FIELDS].getName());
+            System.err.print(" and " + files[INDEX].getName() + " files reading");
+        } finally {
+            closeRandomAccessFile(dataStream, files[FIELDS]);
+            closeRandomAccessFile(indexStream, files[INDEX]);
         }
         return card;
-       // else { throw new IOException("One of the database files wasn't found"); }
     }
-}
 
-//======================================================================================================================
+    private RandomAccessFile newRandomAccessReader(File file) throws FileNotFoundException {
+        RandomAccessFile randomAccessStream;
+        try {
+            randomAccessStream = new RandomAccessFile(file, "r");
+        } catch (FileNotFoundException e) {
+            // TODO Send a query to a Server to restore a not found file
+            String fileName = file.getName();
+            System.err.println("File " + fileName + " wasn't found.");
+            throw new FileNotFoundException(fileName);
+        }
+        return randomAccessStream;
+    }
+
+    private void closeRandomAccessFile(RandomAccessFile randomAccessStream, File tiedFile) {
+        try{
+            if(randomAccessStream != null) {
+                randomAccessStream.close();
+            }
+        } catch (IOException e) {
+            System.err.println("IOException occurred while closing a stream tied with " + tiedFile.getName() + " file.");
+            System.err.println("Therefore, system resources associated with this stream weren't released.");
+        }
+    }
+
+}
