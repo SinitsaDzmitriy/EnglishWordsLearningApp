@@ -9,7 +9,13 @@ public class ServerFilesDataProvider implements IServerDataProvider{
     private static ServerFilesDataProvider instance;
     private ServerFilesDataProvider() {}
     public static ServerFilesDataProvider getInstance() {
-        if
+//        if
+        return new ServerFilesDataProvider();
+    }
+
+    @Override
+    public File getFileByName(String name) {
+        return null;
     }
 
     @Override

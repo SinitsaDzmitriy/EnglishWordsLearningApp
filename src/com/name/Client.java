@@ -55,4 +55,10 @@ public class Client {
 //            }
 //        }
     }
+
+    File requestFileWithName(String fileName) {
+        //TODO Send a request to the server for a file with name fileName
+        return new File(fileName);
+    }
+
 }

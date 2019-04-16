@@ -1,18 +1,18 @@
-package com.name;
+package com.name.common;
 
 import java.io.Serializable;
 import java.util.ArrayList;
 
 public class SearchItem implements Serializable {
-    private String text;
+    private String phrase;
     private ArrayList<Integer> ides;
 
-    public SearchItem(String text) {
-        this.text = text;
+    public SearchItem (String phrase) {
+        this.phrase = phrase;
         this.ides = new ArrayList<>();
     }
 
-    public String getText() { return text; }
+    public String getPhrase() { return phrase; }
 
     public ArrayList<Integer> getIdes() { return ides; }
 
@@ -23,14 +23,14 @@ public class SearchItem implements Serializable {
         }
         if (anObject instanceof SearchItem) {
             SearchItem anotherItem = (SearchItem)anObject;
-            return text.equals(anotherItem.getText());
+            return phrase.equals(anotherItem.getPhrase());
         }
         return false;
     }
 
     @Override
     public int hashCode() {
-        return text.hashCode();
+        return phrase.hashCode();
     }
 
     public void addCardId(int id){
@@ -38,6 +38,6 @@ public class SearchItem implements Serializable {
     }
 
     public String toString() {
-        return text + " " + ides.toString();
+        return phrase + " " + ides.toString();
     }
 }

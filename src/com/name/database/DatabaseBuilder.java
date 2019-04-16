@@ -1,6 +1,6 @@
 package com.name.database;
 
-import com.name.SearchItem;
+import com.name.common.SearchItem;
 import com.name.entities.Card;
 
 
@@ -16,11 +16,11 @@ public class DatabaseBuilder {
     private static final int TRANSLATION_GROUP = 4;
 
     // Files:
-    private static final File source = new File("Server\\source.txt");
-    private static final File data = new File("Server\\FieldsOfCards.data");
-    private static final File index = new File("Server\\Indexes.data");
-    private static final File rusSearch = new File("Server\\RusSearch.data");
-    private static final File engSearch = new File("Server\\EngSearch.data");
+    private static final File source = new File("server\\source.txt");
+    private static final File data = new File("server\\fields_of_cards.data");
+    private static final File index = new File("server\\index.data");
+    private static final File rusSearch = new File("server\\rus_search.data");
+    private static final File engSearch = new File("server\\eng_search.data");
 
     public static void buildDatabase() throws FileNotFoundException {
         try {
@@ -89,12 +89,12 @@ public class DatabaseBuilder {
              RandomAccessFile indexStream = new RandomAccessFile(index, "rw")) {
 
             List<SearchItem> rusList = Arrays.stream(cards).map(card -> new SearchItem(card.getTranslation()))
-                    .sorted(Comparator.comparing(SearchItem::getText))
+                    .sorted(Comparator.comparing(SearchItem::getPhrase))
                     .distinct()
                     .collect(Collectors.toList());
 
             List<SearchItem> engList = Arrays.stream(cards).map(card -> new SearchItem(card.getWord()))
-                    .sorted(Comparator.comparing(SearchItem::getText))
+                    .sorted(Comparator.comparing(SearchItem::getPhrase))
                     .distinct()
                     .collect(Collectors.toList());
 
@@ -106,14 +106,14 @@ public class DatabaseBuilder {
                 indexStream.writeLong(dataStream.getFilePointer());
 
                 for (SearchItem item : rusList) {
-                    if (item.getText().equals(cards[i].getTranslation())) {
+                    if (item.getPhrase().equals(cards[i].getTranslation())) {
                         item.addCardId(i);
                         break;
                     }
                 }
 
                 for (SearchItem item : engList) {
-                    if (item.getText().equals(cards[i].getWord())) {
+                    if (item.getPhrase().equals(cards[i].getWord())) {
                         item.addCardId(i);
                         break;
                     }

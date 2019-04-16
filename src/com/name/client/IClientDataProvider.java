@@ -3,11 +3,10 @@ package com.name.client;
 import com.name.entities.Card;
 
 import java.io.File;
-import java.util.List;
+import java.io.FileNotFoundException;
 
 public interface IClientDataProvider {
-//    void pushFilesWithData(List<File> files);
-//    void pushFile(File file);
-    Card[] find(String text);
-
+    String[] getNamesOfNeededFiles();
+    void pushFile(File file);
+    Card[] find(String text) throws FileNotFoundException;
 }
