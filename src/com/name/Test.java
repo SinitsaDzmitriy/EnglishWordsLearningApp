@@ -1,54 +1,59 @@
 package com.name;
 
+import com.name.client.ClientFilesDataProvider;
+import com.name.database.DatabaseBuilder;
+import com.name.database.FilesDataProvider;
 import com.name.entities.Card;
 
-import java.util.Arrays;
-import java.util.Comparator;
-import java.util.List;
+import java.io.*;
 import java.util.Scanner;
-import java.util.stream.Collectors;
+import java.util.regex.Pattern;
 
 public class Test {
     private static final Scanner scan = new Scanner(System.in);
     public static void main(String[] args) {
-        Card[] cards = { new Card("Car", "Вагон"),
-                new Card("Auto", "Машина"),
-                new Card("Cart", "Вагон"),
-                new Card("Car", "Автомобиль")
-        };
-        method(cards);
-    }
 
-    public static void method(Card[] cards) {
-        List<SearchItem> rusList = Arrays.stream(cards).map(card -> new SearchItem(card.getTranslation()))
-                .sorted(Comparator.comparing(SearchItem::getText))
-                .distinct()
-                .collect(Collectors.toList());
+        File file = new File("test" + File.separator + "test.txt");
+        File newFile = new File("test.txt");
 
-        List<SearchItem> engList = Arrays.stream(cards).map(card -> new SearchItem(card.getWord()))
-                .sorted(Comparator.comparing(SearchItem::getText))
-                .distinct()
-                .collect(Collectors.toList());
+        System.out.println("file name: " + file.getName());
+        System.out.println("new file name: " + newFile.getName());
 
-        for(int i = cards.length - 1; i >= 0; --i) {
-            for(SearchItem item: rusList) {
-                if (item.getText() == cards[i].getTranslation()){
-                    item.addCardId(i);
-                    break;
-                }
-            }
+        System.out.println();
 
-            for(SearchItem item: engList) {
-                if (item.getText() == cards[i].getWord()){
-                    item.addCardId(i);
-                    break;
-                }
+        System.out.println("file exists: " + file.exists());
+        System.out.println("new file exists: " + newFile.exists());
+
+        System.out.println();
+
+        if(file.getName().equals(newFile.getName())){
+            if (!file.exists()) {
+                newFile.renameTo(file);
             }
         }
 
-        for(SearchItem item: rusList) { System.out.println(item.toString()); }
+        System.out.println("file name: " + file.getName());
+        System.out.println("new file name: " + newFile.getName());
+
         System.out.println();
-        for(SearchItem item: engList) { System.out.println(item.toString()); }
+
+        System.out.println("file exists: " + file.exists());
+        System.out.println("new file exists: " + newFile.exists());
+
+
+//        try {
+//            DatabaseBuilder.buildDatabase();
+//            ClientFilesDataProvider dataProvider = ClientFilesDataProvider.getInstance();
+//            String searchPhrase = scan.nextLine();
+//            Card[] cards = dataProvider.find(searchPhrase);
+//            for (Card card : cards) {
+//                System.out.println(card.toString());
+//            }
+//        } catch(FileNotFoundException e) {
+//            e.printStackTrace();
+//        }
     }
+
+
 
 }

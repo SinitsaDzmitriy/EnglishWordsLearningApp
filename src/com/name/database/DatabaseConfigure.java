@@ -1,6 +1,6 @@
 package com.name.database;
 
-import com.name.SearchItem;
+import com.name.common.SearchItem;
 import com.name.entities.Card;
 
 import java.io.*;
@@ -44,12 +44,12 @@ public class DatabaseConfigure {
                 indexStream = new RandomAccessFile(index, "rw");
 
                 List<SearchItem> rusList = Arrays.stream(cards).map(card -> new SearchItem(card.getTranslation()))
-                        .sorted(Comparator.comparing(SearchItem::getText))
+                        .sorted(Comparator.comparing(SearchItem::getPhrase))
                         .distinct()
                         .collect(Collectors.toList());
 
                 List<SearchItem> engList = Arrays.stream(cards).map(card -> new SearchItem(card.getWord()))
-                        .sorted(Comparator.comparing(SearchItem::getText))
+                        .sorted(Comparator.comparing(SearchItem::getPhrase))
                         .distinct()
                         .collect(Collectors.toList());
 
@@ -63,14 +63,14 @@ public class DatabaseConfigure {
                     indexStream.writeLong(dataStream.getFilePointer());
 
                     for (SearchItem item : rusList) {
-                        if (item.getText() == cards[i].getTranslation()) {
+                        if (item.getPhrase() == cards[i].getTranslation()) {
                             item.addCardId(i);
                             break;
                         }
                     }
 
                     for (SearchItem item : engList) {
-                        if (item.getText() == cards[i].getWord()) {
+                        if (item.getPhrase() == cards[i].getWord()) {
                             item.addCardId(i);
                             break;
                         }
@@ -102,45 +102,115 @@ public class DatabaseConfigure {
         }
     }
 
-    //Future | params: String word or translation, returns: Card[] that matches with word or phrase
-    public static Card read(int entryNo) throws IOException{
-        Card card = null;
-
-        if (data.exists() && index.exists()) {
-            try (RandomAccessFile dataStream = new RandomAccessFile(data, "r");
-                 RandomAccessFile indexStream = new RandomAccessFile(index, "r")) {
-                long pos = (entryNo == 0) ? 0 : LONG_SIZE * (NUM_OF_FIELDS * entryNo - 1);
-                indexStream.seek(pos);
-                long[] labels = new long[NUM_OF_FIELDS + 1];
-
-                for (int i = 0; i <= NUM_OF_FIELDS; ++i) {
-                    labels[i] = indexStream.readLong();
-                }
-
-                // TODO заполнение массива fields в цикле for
-
-                int wordLength = (int) (labels[1] - labels[0]);
-                int translationLength = (int) (labels[2] - labels[1]);
-
-                byte[] wordInBytes = new byte[wordLength];
-                byte[] translationInBytes = new byte[translationLength];
-
-                dataStream.seek(labels[0]);
-
-                dataStream.read(wordInBytes);
-                dataStream.read(translationInBytes);
-
-                card = new Card(new String(wordInBytes),
-                        new String(translationInBytes));
-
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-            return card;
-        } else {
-            throw new IOException("One of the database files wasn't found");
-        }
-    }
+//    //Future | params: String word or translation, returns: Card[] that matches with word or phrase
+//    public static Card read(int entryNo) throws IOException{
+//        Card card = null;
+//
+//        if (data.exists() && index.exists()) {
+//            try (RandomAccessFile dataStream = new RandomAccessFile(data, "r");
+//                 RandomAccessFile indexStream = new RandomAccessFile(index, "r")) {
+//                long pos = (entryNo == 0) ? 0 : LONG_SIZE * (NUM_OF_FIELDS * entryNo - 1);
+//                indexStream.seek(pos);
+//                long[] labels = new long[NUM_OF_FIELDS + 1];
+//
+//                for (int i = 0; i <= NUM_OF_FIELDS; ++i) {
+//                    labels[i] = indexStream.readLong();
+//                }
+//
+//                // TODO заполнение массива fields в цикле for
+//
+//                int wordLength = (int) (labels[1] - labels[0]);
+//                int translationLength = (int) (labels[2] - labels[1]);
+//
+//                byte[] wordInBytes = new byte[wordLength];
+//                byte[] translationInBytes = new byte[translationLength];
+//
+//                dataStream.seek(labels[0]);
+//
+//                dataStream.read(wordInBytes);
+//                dataStream.read(translationInBytes);
+//
+//                card = new Card(new String(wordInBytes),
+//                        new String(translationInBytes));
+//
+//            } catch (IOException e) {
+//                e.printStackTrace();
+//            }
+//            return card;
+//        } else {
+//            throw new IOException("One of the database files wasn't found");
+//        }
+//    }
+//
+//    public static Card read(int entryNo) throws IOException{
+//        Card card = null;
+//
+//        if (data.exists() && index.exists()) {
+//            try (RandomAccessFile dataStream = new RandomAccessFile(data, "r");
+//                 RandomAccessFile indexStream = new RandomAccessFile(index, "r")) {
+//                long pos = (entryNo == 0) ? 0 : LONG_SIZE * (NUM_OF_CARD_FIELDS * entryNo - 1);
+//                indexStream.seek(pos);
+//                long[] labels = new long[NUM_OF_CARD_FIELDS + 1];
+//
+//                for (int i = 0; i <= NUM_OF_CARD_FIELDS; ++i) {
+//                    labels[i] = indexStream.readLong();
+//                }
+//
+//                // TODO заполнение массива fields в цикле for
+//
+//                int wordLength = (int) (labels[1] - labels[0]);
+//                int translationLength = (int) (labels[2] - labels[1]);
+//
+//                byte[] wordInBytes = new byte[wordLength];
+//                byte[] translationInBytes = new byte[translationLength];
+//
+//                dataStream.seek(labels[0]);
+//
+//                dataStream.read(wordInBytes);
+//                dataStream.read(translationInBytes);
+//
+//                card = new Card(new String(wordInBytes),
+//                        new String(translationInBytes));
+//
+//            } catch (IOException e) {
+//                e.printStackTrace();
+//            }
+//            return card;
+//        } else {
+//            throw new IOException("One of the database files wasn't found");
+//        }
+//    }
+//
+////    // Search in English (How to recognize language in Java?)
+////    public static Card[] find(String text){
+////        // TODO add language recognition
+////        // TODO exception handling
+////        try {
+////            ArrayList<SearchItem> searchList = new ArrayList<>();
+////            ObjectInputStream searchStream = new ObjectInputStream(new FileInputStream((engSearch)));
+////            searchList = (ArrayList<SearchItem>) searchStream.readObject();
+////            int index = -1;
+////            for (int i = 0; i < searchList.size(); ++i) {
+////                if(searchList.get(i).getPhrase().equals(text)){
+////                    index = i;
+////                    break;
+////                }
+////            }
+////
+////            if (index == -1) {
+////                System.out.println("Word no found");
+////            } else {
+////                for (int id : searchList.get(index).getIdes()) {
+////                    System.out.println(read(id).toString());
+////                }
+////            }
+////
+////            searchStream.close();
+////        } catch (Exception e) {
+////            e.printStackTrace();
+////        }
+////        return null;
+////    }
 }
 
 //======================================================================================================================

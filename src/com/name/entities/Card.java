@@ -13,6 +13,11 @@ public class Card implements Serializable {
         this.translation = translation;
     }
 
+    public Card(byte[][] cardFieldsInBytes){
+        this.word = new String(cardFieldsInBytes[0]);
+        this.translation = new String(cardFieldsInBytes[1]);
+    }
+
     public void setWord(String word) { this.word = word; }
     public void setTranslation(String translation) { this.translation = translation; }
 
