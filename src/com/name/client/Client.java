@@ -1,4 +1,4 @@
-package com.name;
+package com.name.client;
 
 import java.io.*;
 import java.net.InetAddress;

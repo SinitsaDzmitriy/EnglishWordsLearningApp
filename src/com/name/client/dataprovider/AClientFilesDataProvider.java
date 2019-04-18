@@ -1,4 +1,4 @@
-package com.name.client;
+package com.name.client.dataprovider;
 
 import com.name.entities.Card;
 
@@ -8,11 +8,6 @@ import java.util.ArrayList;
 
 abstract public class AClientFilesDataProvider implements IClientDataProvider {
     protected File[] files;
-    protected final String DIRECTORY;
-
-    AClientFilesDataProvider(String directory) {
-        DIRECTORY = directory;
-    }
 
     public ArrayList<String> getNamesOfNeededFiles() {
         ArrayList<String> namesOfNeededFiles = new ArrayList<>();

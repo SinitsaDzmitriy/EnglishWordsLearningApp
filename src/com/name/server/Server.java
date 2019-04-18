@@ -1,16 +1,10 @@
-package com.name;
+package com.name.server;
 
 import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
 
 public class Server {
-    //TODO get array of files from database
-    private static final File[] databaseFiles = { new File("Server\\FieldsOfCards.data"),
-            new File("Server\\Indexes.data"),
-            new File("Server\\RuSearch.data"),
-            new File("Server\\EngSearch.data")};
-
     public static void main(String[] args) {
         ServerSocket serverSocket = null;
         Socket clientSocket = null;
@@ -19,7 +13,7 @@ public class Server {
             serverSocket = new ServerSocket(8030);                                  // port - identify the process on the server
             clientSocket = serverSocket.accept();                                        // accept() listen for a connection and accept Client socket
 
-            final int NUM_OF_FILE_IN_DATABASE = databaseFiles.length;
+//            final int NUM_OF_FILE_IN_DATABASE = databaseFiles.length;
 
             // Prepare a stream to send data to the Client
             OutputStream outputStream = clientSocket.getOutputStream();

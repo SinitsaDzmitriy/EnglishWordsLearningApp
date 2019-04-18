@@ -1,4 +1,4 @@
-package com.name.client;
+package com.name.client.dataprovider;
 
 import com.name.common.SearchItem;
 import com.name.entities.Card;
@@ -19,10 +19,11 @@ public class ClientFilesDataProvider extends AClientFilesDataProvider {
     private static final int ENG_SEARCH = 2;
     private static final int RUS_SEARCH = 3;
 
+    private final String DIRECTORY = "client";
+
     private static ClientFilesDataProvider instance;
 
     private ClientFilesDataProvider() {
-        super("client");
         files = new File[NUM_OF_FILES];
         files[FIELDS] = new File(DIRECTORY + File.separator + "fields_of_cards.data");
         files[INDEX] = new File(DIRECTORY + File.separator + "index.data");
@@ -39,8 +40,6 @@ public class ClientFilesDataProvider extends AClientFilesDataProvider {
 
 
     /**
-     * Not final version.
-     *
      * @param phrase the {@code String} to search in data storage.
      * @return an array of {@code Card} objects whose either <tt>word</tt> or <tt>translation</tt>
      * field matches with the given phrase; otherwise, <tt>null</tt>
@@ -68,7 +67,6 @@ public class ClientFilesDataProvider extends AClientFilesDataProvider {
     }
 
     /**
-     * Final version.
      * @param   concreteLangSearchFile - where will be searched
      * @param   searchPhrase - what will be searched
      * @return  an array of {@code Card} objects. One of their field defined by file parameter

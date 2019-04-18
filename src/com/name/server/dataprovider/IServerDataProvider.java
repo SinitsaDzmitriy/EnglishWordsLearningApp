@@ -1,9 +1,8 @@
-package com.name.server;
+package com.name.server.dataprovider;
 
 import java.io.File;
 import java.util.List;
 
 public interface IServerDataProvider {
-    List<File> getFilesWithData();
     File getFileByName(String name);
 }

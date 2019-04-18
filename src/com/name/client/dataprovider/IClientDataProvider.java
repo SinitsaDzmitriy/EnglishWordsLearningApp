@@ -1,4 +1,4 @@
-package com.name.client;
+package com.name.client.dataprovider;
 
 import com.name.entities.Card;
 

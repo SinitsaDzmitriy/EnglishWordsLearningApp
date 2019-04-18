@@ -1,13 +1,7 @@
 package com.name;
 
-import com.name.client.ClientFilesDataProvider;
-import com.name.database.DatabaseBuilder;
-import com.name.database.FilesDataProvider;
-import com.name.entities.Card;
-
 import java.io.*;
 import java.util.Scanner;
-import java.util.regex.Pattern;
 
 public class Test {
     private static final Scanner scan = new Scanner(System.in);
