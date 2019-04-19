@@ -14,6 +14,7 @@ public class ClientFilesDataProvider extends AClientFilesDataProvider {
     private static final int NUM_OF_FILES = 4;
     private static final int NUM_OF_CARD_FIELDS = 2;
 
+    // TODO pack in enum
     private static final int FIELDS = 0;
     private static final int INDEX = 1;
     private static final int ENG_SEARCH = 2;

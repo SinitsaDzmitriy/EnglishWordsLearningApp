@@ -6,6 +6,7 @@ import com.name.server.dataprovider.ServerFilesDataProvider;
 import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.nio.file.Files;
 
 public class Server {
 
@@ -31,8 +32,11 @@ public class Server {
 
             clientSocket = serverSocket.accept();
 
-            universalOutputStream = new ObjectOutputStream(clientSocket.getOutputStream());
+//            universalInputStream = new ObjectInputStream(new BufferedInputStream(clientSocket.getInputStream()));
+//            universalOutputStream = new ObjectOutputStream(new BufferedOutputStream(clientSocket.getOutputStream()));
+
             universalInputStream = new ObjectInputStream(clientSocket.getInputStream());
+            universalOutputStream = new ObjectOutputStream(clientSocket.getOutputStream());
 
             String request = (String) universalInputStream.readObject();
             String[] splitRequest = request.split(REQUEST_SEPARATOR);
@@ -46,6 +50,8 @@ public class Server {
                 universalOutputStream.writeBoolean(true);
 
                 final int requestedFileLength = (int) requestedFile.length();
+
+                byte[] content = Files.readAllBytes(requestedFile.toPath());
 
                 // TODO Check English in the commentary below
                 // Send Client the length of the requested file
@@ -63,8 +69,8 @@ public class Server {
                 }
 
                 // Send Client the requested file as a byte array
-                universalOutputStream.write(requestedFileInBytes, 0, requestedFileLength);
-                universalOutputStream.flush();
+                universalOutputStream.write(requestedFileInBytes);
+
 
             } else {
                 universalOutputStream.writeBoolean(false);

@@ -16,6 +16,7 @@ public class Client {
     public static void main(String[] args) {
 
         ClientFilesDataProvider dataProvider = ClientFilesDataProvider.getInstance();
+        // get list of needed files
         ArrayList<String> namesOfNeededFiles = dataProvider.getNamesOfNeededFiles();
 
         // If list of needed files isn't empty
@@ -27,12 +28,13 @@ public class Client {
 
             try {
                 clientSocket = new Socket(InetAddress.getLocalHost(), SERVER_PORT);
-                universalOutputStream = new ObjectOutputStream(clientSocket.getOutputStream());
+
                 universalInputStream = new ObjectInputStream(clientSocket.getInputStream());
+                universalOutputStream = new ObjectOutputStream(clientSocket.getOutputStream());
 
                 File currentFile;
                 byte[] currentFileInBytes;
-                int currentFileSizeInBytes;
+                int currentFileLength;
                 BufferedOutputStream buffFileOutputStream = null;
 
                 for (String fileName : namesOfNeededFiles) {
@@ -42,14 +44,14 @@ public class Client {
                     // If the request can be proceed
                     if (universalInputStream.readBoolean()) {
                         // TODO send file length from Server!!!
-                        currentFileSizeInBytes = universalInputStream.readInt();
-                        currentFileInBytes = new byte[currentFileSizeInBytes];
+                        currentFileLength = universalInputStream.readInt();
+                        currentFileInBytes = new byte[currentFileLength];
 
-                        //==============================================================================================
-
+                        System.out.println( "file sended");
                         // If the end of the stream reached earlier then expected
                         if (universalInputStream.read(currentFileInBytes) == -1) {
                             // TODO what should I do here?
+
                             System.err.println("Exception: data storage recovery failure");
                             System.exit(1);
                         } else {
@@ -62,7 +64,7 @@ public class Client {
                                  * If size of a exist file is bigger then length of another one with
                                  * the same name which was sent from the Server as a byte array
                                  */
-                                if (currentFile.length() > currentFileSizeInBytes) {
+                                if (currentFile.length() > currentFileLength) {
                                     if (!currentFile.delete()) { throw new IOException("Exception: file " + currentFile.getName() + " delete failure"); }
                                     if (!currentFile.createNewFile()) { throw new IOException("Exception: file " + currentFile.getName() + " creation failure"); }
                                 }
