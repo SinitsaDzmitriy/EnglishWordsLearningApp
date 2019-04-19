@@ -1,64 +1,139 @@
 package com.name.client;
 
+import com.name.client.dataprovider.ClientFilesDataProvider;
+
 import java.io.*;
 import java.net.InetAddress;
 import java.net.Socket;
 import java.net.UnknownHostException;
+import java.util.ArrayList;
 
 public class Client {
+    private final static int SERVER_PORT = 8050;
+
+    private final static String TEMP_DIR = "buffer";
+
     public static void main(String[] args) {
-        Socket clientSocket = null;
 
-//        try {
-//            clientSocket = new Socket(InetAddress.getLocalHost(),8030);
-//            InputStream inputStream = clientSocket.getInputStream();
-//
-//            DataInputStream inputStreamWrapForBaseTypes = new DataInputStream(inputStream);
-//
-//            final int NUM_OF_FILE_IN_DATABASE = inputStreamWrapForBaseTypes.readInt();
-//            File[] databaseFiles = new File[NUM_OF_FILE_IN_DATABASE];
-//
-//            for(int i = 0; i < NUM_OF_FILE_IN_DATABASE; ++i) {
-//
-//                // Tie the file No i and the file input stream
-//                fileInputStream = new FileInputStream(databaseFiles[i]);
-//                final int CURRENT_FILE_LENGTH = (int) databaseFiles[i].length();
-//
-//                // Send the length of array of bytes to the Client
-//                outputStreamWrapForBaseTypes.writeInt(CURRENT_FILE_LENGTH);
-//
-//                // Read info from the database (file) to array of bytes
-//                byte[] arrayOfBytes = new byte[CURRENT_FILE_LENGTH];
-//                fileInputStream.read(arrayOfBytes, 0, CURRENT_FILE_LENGTH);
-//
-//                // Send the array of bytes to the Client
-//                outputStream.write(arrayOfBytes, 0, CURRENT_FILE_LENGTH);
-//            }
-//
-//            byte[] arrayOfBytes = new byte[FILE_LENGTH];
-//
-//            if(inputStream.read(arrayOfBytes) == -1) {
-//                throw new IOException();
-//            } else {
-//                File database = new File("clientDatabase.txt");
-//                database.createNewFile();
-//                FileOutputStream fileOutputStream = new FileOutputStream(database);
-//                fileOutputStream.write(arrayOfBytes);
-//            }
-//        } catch(Exception e) {
-//            e.printStackTrace();
-//        } finally {
-//            try {
-//                clientSocket.close();
-//            } catch (IOException e) {
-//                e.printStackTrace();
-//            }
-//        }
+        ClientFilesDataProvider dataProvider = ClientFilesDataProvider.getInstance();
+        ArrayList<String> namesOfNeededFiles = dataProvider.getNamesOfNeededFiles();
+
+        // If list of needed files isn't empty
+        if (!namesOfNeededFiles.isEmpty()) {
+
+            Socket clientSocket = null;
+            ObjectOutputStream universalOutputStream = null;
+            ObjectInputStream universalInputStream = null;
+
+            try {
+                clientSocket = new Socket(InetAddress.getLocalHost(), SERVER_PORT);
+                universalOutputStream = new ObjectOutputStream(clientSocket.getOutputStream());
+                universalInputStream = new ObjectInputStream(clientSocket.getInputStream());
+
+                File currentFile;
+                byte[] currentFileInBytes;
+                int currentFileSizeInBytes;
+                BufferedOutputStream buffFileOutputStream = null;
+
+                for (String fileName : namesOfNeededFiles) {
+                    // Send a "get" request
+                    universalOutputStream.writeObject("get base " + fileName);
+
+                    // If the request can be proceed
+                    if (universalInputStream.readBoolean()) {
+                        // TODO send file length from Server!!!
+                        currentFileSizeInBytes = universalInputStream.readInt();
+                        currentFileInBytes = new byte[currentFileSizeInBytes];
+
+                        //==============================================================================================
+
+                        // If the end of the stream reached earlier then expected
+                        if (universalInputStream.read(currentFileInBytes) == -1) {
+                            // TODO what should I do here?
+                            System.err.println("Exception: data storage recovery failure");
+                            System.exit(1);
+                        } else {
+                            // Create a file-connected object
+                            currentFile = new File(TEMP_DIR + File.separator + fileName);
+
+                            // Prepare a physical file for writing
+                            if (currentFile.exists()) {
+                                /*
+                                 * If size of a exist file is bigger then length of another one with
+                                 * the same name which was sent from the Server as a byte array
+                                 */
+                                if (currentFile.length() > currentFileSizeInBytes) {
+                                    if (!currentFile.delete()) { throw new IOException("Exception: file " + currentFile.getName() + " delete failure"); }
+                                    if (!currentFile.createNewFile()) { throw new IOException("Exception: file " + currentFile.getName() + " creation failure"); }
+                                }
+                            } else {
+                                if (!currentFile.createNewFile()) { throw new IOException("Exception: file " + currentFile.getName() + " creation failure"); }
+                            }
+
+                            // Create stream and write in the file
+                            try {
+                                buffFileOutputStream = new BufferedOutputStream(new FileOutputStream(currentFile, false));
+                                buffFileOutputStream.write(currentFileInBytes);
+                            } catch (IOException e) {
+                                e.printStackTrace();
+                                // TODO some actions
+                            } finally {
+                                if (buffFileOutputStream != null) {
+                                    try {
+                                        buffFileOutputStream.close();
+                                    } catch (IOException e) {
+                                        e.printStackTrace();
+                                    }
+                                }
+                                try {
+                                    if (buffFileOutputStream != null) {
+                                        buffFileOutputStream.close();
+                                    }
+                                } catch (IOException e) {
+                                    e.printStackTrace();
+                                }
+                            }
+                            dataProvider.pushFile(currentFile);
+                        }
+                    }
+                }
+
+            } catch (IOException e) {
+                e.printStackTrace();
+            } finally {
+                if (universalInputStream != null) {
+                    try {
+                        universalInputStream.close();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
+                if (universalOutputStream != null) {
+                    try {
+                        universalOutputStream.close();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
+                if (clientSocket != null) {
+                    try {
+                        clientSocket.close();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+        }
     }
-
-    File requestFileWithName(String fileName) {
-        //TODO Send a request to the server for a file with name fileName
-        return new File(fileName);
-    }
-
 }
+
+//======================================================================================================================
+// TODO [?] 1. If a file wasn't successfully deleted
+
+/*
+ * a:
+ * System.err.println("Exception: file " + currentFile.getName() + " delete failure");
+ * System.exit(1);
+ * b:
+ * throw new IOException("Exception: file " + currentFile.getName() + " delete failure");
+ */

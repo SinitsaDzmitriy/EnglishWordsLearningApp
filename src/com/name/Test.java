@@ -1,11 +1,21 @@
 package com.name;
 
+import com.name.client.dataprovider.ClientFilesDataProvider;
+import com.name.database.DatabaseBuilder;
+import com.name.entities.Card;
+
 import java.io.*;
 import java.util.Scanner;
 
 public class Test {
     private static final Scanner scan = new Scanner(System.in);
-    public static void main(String[] args) {
+    public static void main(String[] args) throws FileNotFoundException {
+
+        ClientFilesDataProvider dp = ClientFilesDataProvider.getInstance();
+        Card[] cards = dp.find("zoo");
+        for(Card card: cards){
+            System.out.println(card);
+        }
 
         File file = new File("test" + File.separator + "test.txt");
         File newFile = new File("test.txt");

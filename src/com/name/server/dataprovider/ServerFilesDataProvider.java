@@ -33,7 +33,7 @@ public class ServerFilesDataProvider extends AServerFilesDataProvider {
     public File getFileByName(String targetFileName) {
         for (File currentFile : files) {
             if (currentFile.getName().equals(targetFileName)) {
-                if (!currentFile.exists()) {
+                if (currentFile.exists()) {
                     return currentFile;
                 }
             }
