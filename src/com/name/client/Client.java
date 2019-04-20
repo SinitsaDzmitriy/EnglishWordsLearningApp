@@ -5,7 +5,6 @@ import com.name.client.dataprovider.ClientFilesDataProvider;
 import java.io.*;
 import java.net.InetAddress;
 import java.net.Socket;
-import java.net.UnknownHostException;
 import java.util.ArrayList;
 
 public class Client {
@@ -29,8 +28,8 @@ public class Client {
             try {
                 clientSocket = new Socket(InetAddress.getLocalHost(), SERVER_PORT);
 
-                universalInputStream = new ObjectInputStream(clientSocket.getInputStream());
                 universalOutputStream = new ObjectOutputStream(clientSocket.getOutputStream());
+                universalInputStream = new ObjectInputStream(clientSocket.getInputStream());
 
                 File currentFile;
                 byte[] currentFileInBytes;
@@ -47,9 +46,13 @@ public class Client {
                         currentFileLength = universalInputStream.readInt();
                         currentFileInBytes = new byte[currentFileLength];
 
-                        System.out.println( "file sended");
+                        System.out.println( "file sent");
                         // If the end of the stream reached earlier then expected
-                        if (universalInputStream.read(currentFileInBytes) == -1) {
+
+                        int numOfBytesRead = universalInputStream.read(currentFileInBytes);
+                        System.out.println(numOfBytesRead);
+
+                        if (numOfBytesRead == -1) {
                             // TODO what should I do here?
 
                             System.err.println("Exception: data storage recovery failure");
@@ -87,19 +90,11 @@ public class Client {
                                         e.printStackTrace();
                                     }
                                 }
-                                try {
-                                    if (buffFileOutputStream != null) {
-                                        buffFileOutputStream.close();
-                                    }
-                                } catch (IOException e) {
-                                    e.printStackTrace();
-                                }
                             }
                             dataProvider.pushFile(currentFile);
                         }
                     }
                 }
-
             } catch (IOException e) {
                 e.printStackTrace();
             } finally {

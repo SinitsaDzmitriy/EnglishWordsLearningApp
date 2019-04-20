@@ -19,8 +19,9 @@ public class Server {
         IServerDataProvider dataProvider = ServerFilesDataProvider.getInstance();
 
         Socket clientSocket = null;
-        ObjectOutputStream universalOutputStream = null;
         ObjectInputStream universalInputStream = null;
+        ObjectOutputStream universalOutputStream = null;
+
 
         /*
          * Make the connection between Client and Server
@@ -51,8 +52,6 @@ public class Server {
 
                 final int requestedFileLength = (int) requestedFile.length();
 
-                byte[] content = Files.readAllBytes(requestedFile.toPath());
-
                 // TODO Check English in the commentary below
                 // Send Client the length of the requested file
                 universalOutputStream.writeInt(requestedFileLength);
@@ -68,9 +67,10 @@ public class Server {
                     e.printStackTrace();
                 }
 
-                // Send Client the requested file as a byte array
-                universalOutputStream.write(requestedFileInBytes);
+                universalOutputStream.flush();
 
+                // Send Client the requested file as a byte array
+                universalOutputStream.write(requestedFileInBytes,0, 79_824 );
 
             } else {
                 universalOutputStream.writeBoolean(false);
