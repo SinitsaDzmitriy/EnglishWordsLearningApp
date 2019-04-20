@@ -1,6 +1,7 @@
 package com.name.client;
 
 import com.name.client.dataprovider.ClientFilesDataProvider;
+import com.name.client.dataprovider.IClientDataProvider;
 
 import java.io.*;
 import java.net.InetAddress;
@@ -14,8 +15,14 @@ public class Client {
 
     public static void main(String[] args) {
 
-        ClientFilesDataProvider dataProvider = ClientFilesDataProvider.getInstance();
-        // get list of needed files
+        // This block is needed to launch a scenario when Client downloads a file from Server
+        File file = new File("client" + File.separator + "index.data");
+        if (file.exists()) {
+            file.delete();
+        }
+
+        IClientDataProvider dataProvider = ClientFilesDataProvider.getInstance();
+        // Get list of needed files
         ArrayList<String> namesOfNeededFiles = dataProvider.getNamesOfNeededFiles();
 
         // If list of needed files isn't empty
@@ -29,7 +36,7 @@ public class Client {
                 clientSocket = new Socket(InetAddress.getLocalHost(), SERVER_PORT);
 
                 universalOutputStream = new ObjectOutputStream(clientSocket.getOutputStream());
-                universalInputStream = new ObjectInputStream(clientSocket.getInputStream());
+                universalInputStream = new ObjectInputStream(new BufferedInputStream(clientSocket.getInputStream()));
 
                 File currentFile;
                 byte[] currentFileInBytes;
@@ -42,57 +49,51 @@ public class Client {
 
                     // If the request can be proceed
                     if (universalInputStream.readBoolean()) {
-                        // TODO send file length from Server!!!
+                        // Get the file length from Server
                         currentFileLength = universalInputStream.readInt();
                         currentFileInBytes = new byte[currentFileLength];
+                        universalInputStream.readFully(currentFileInBytes);
 
-                        System.out.println( "file sent");
-                        // If the end of the stream reached earlier then expected
+                        // Create a file-connected object
+                        currentFile = new File(TEMP_DIR + File.separator + fileName);
 
-                        int numOfBytesRead = universalInputStream.read(currentFileInBytes);
-                        System.out.println(numOfBytesRead);
-
-                        if (numOfBytesRead == -1) {
-                            // TODO what should I do here?
-
-                            System.err.println("Exception: data storage recovery failure");
-                            System.exit(1);
+                        // Prepare a physical file for writing
+                        if (currentFile.exists()) {
+                            /*
+                             * If size of a exist file is bigger then length of another one with
+                             * the same name which was sent from Server as a byte array
+                             */
+                            if (currentFile.length() > currentFileLength) {
+                                if (!currentFile.delete()) {
+                                    throw new IOException("Exception: file " + currentFile.getName() + " delete failure");
+                                }
+                                if (!currentFile.createNewFile()) {
+                                    throw new IOException("Exception: file " + currentFile.getName() + " creation failure");
+                                }
+                            }
                         } else {
-                            // Create a file-connected object
-                            currentFile = new File(TEMP_DIR + File.separator + fileName);
-
-                            // Prepare a physical file for writing
-                            if (currentFile.exists()) {
-                                /*
-                                 * If size of a exist file is bigger then length of another one with
-                                 * the same name which was sent from the Server as a byte array
-                                 */
-                                if (currentFile.length() > currentFileLength) {
-                                    if (!currentFile.delete()) { throw new IOException("Exception: file " + currentFile.getName() + " delete failure"); }
-                                    if (!currentFile.createNewFile()) { throw new IOException("Exception: file " + currentFile.getName() + " creation failure"); }
-                                }
-                            } else {
-                                if (!currentFile.createNewFile()) { throw new IOException("Exception: file " + currentFile.getName() + " creation failure"); }
+                            if (!currentFile.createNewFile()) {
+                                throw new IOException("Exception: file " + currentFile.getName() + " creation failure");
                             }
-
-                            // Create stream and write in the file
-                            try {
-                                buffFileOutputStream = new BufferedOutputStream(new FileOutputStream(currentFile, false));
-                                buffFileOutputStream.write(currentFileInBytes);
-                            } catch (IOException e) {
-                                e.printStackTrace();
-                                // TODO some actions
-                            } finally {
-                                if (buffFileOutputStream != null) {
-                                    try {
-                                        buffFileOutputStream.close();
-                                    } catch (IOException e) {
-                                        e.printStackTrace();
-                                    }
-                                }
-                            }
-                            dataProvider.pushFile(currentFile);
                         }
+
+                        // Create stream and write in the file
+                        try {
+                            buffFileOutputStream = new BufferedOutputStream(new FileOutputStream(currentFile, false));
+                            buffFileOutputStream.write(currentFileInBytes);
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                            // TODO some actions
+                        } finally {
+                            if (buffFileOutputStream != null) {
+                                try {
+                                    buffFileOutputStream.close();
+                                } catch (IOException e) {
+                                    e.printStackTrace();
+                                }
+                            }
+                        }
+                        dataProvider.pushFile(currentFile);
                     }
                 }
             } catch (IOException e) {
@@ -124,10 +125,7 @@ public class Client {
     }
 }
 
-//======================================================================================================================
-// TODO [?] 1. If a file wasn't successfully deleted
-
-/*
+/* TODO [?] 1. If a file wasn't successfully deleted
  * a:
  * System.err.println("Exception: file " + currentFile.getName() + " delete failure");
  * System.exit(1);
