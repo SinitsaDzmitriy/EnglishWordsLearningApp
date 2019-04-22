@@ -1,7 +1,7 @@
 package com.name.database;
 
-import com.name.common.SearchItem;
-import com.name.entities.Card;
+import com.name.common.entities.SearchItem;
+import com.name.common.entities.Card;
 
 import java.io.*;
 import java.util.Arrays;
@@ -184,7 +184,7 @@ public class DatabaseConfigure {
 ////    // Search in English (How to recognize language in Java?)
 ////    public static Card[] find(String text){
 ////        // TODO add language recognition
-////        // TODO exception handling
+////        // TODO exceptions handling
 ////        try {
 ////            ArrayList<SearchItem> searchList = new ArrayList<>();
 ////            ObjectInputStream searchStream = new ObjectInputStream(new FileInputStream((engSearch)));

@@ -1,7 +1,7 @@
 package com.name.database;
 
-import com.name.common.SearchItem;
-import com.name.entities.Card;
+import com.name.common.entities.SearchItem;
+import com.name.common.entities.Card;
 
 
 import java.io.*;
@@ -66,7 +66,7 @@ public class DatabaseBuilder {
         } catch (FileNotFoundException e) {
             throw new FileNotFoundException("File Server\\source.txt doesn't exist");
         } catch (IOException e) {
-            // TODO more info about exception
+            // TODO more info about exceptions
             System.err.println("IOException occurred ");
         }
 
@@ -95,7 +95,7 @@ public class DatabaseBuilder {
             rusSearch.createNewFile();
             engSearch.createNewFile();
         } catch (IOException e) {
-            System.err.println("Creating database files exception");
+            System.err.println("Creating database files exceptions");
         }
 
         try (RandomAccessFile dataStream = new RandomAccessFile(data, "rw");

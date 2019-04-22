@@ -1,6 +1,6 @@
 package com.name.database;
 
-import com.name.entities.Card;
+import com.name.common.entities.Card;
 
 import java.io.File;
 

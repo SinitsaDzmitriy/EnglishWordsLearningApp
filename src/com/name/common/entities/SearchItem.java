@@ -1,4 +1,4 @@
-package com.name.common;
+package com.name.common.entities;
 
 import java.io.Serializable;
 import java.util.ArrayList;

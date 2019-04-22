@@ -1,7 +1,7 @@
 package com.name.client.dataprovider;
 
-import com.name.common.SearchItem;
-import com.name.entities.Card;
+import com.name.common.entities.SearchItem;
+import com.name.common.entities.Card;
 
 import java.io.*;
 import java.util.*;
@@ -77,7 +77,7 @@ public class ClientFilesDataProvider extends AClientFilesDataProvider {
      *          is a name of this file, so it ca
      */
     private Card[] search(File concreteLangSearchFile, String searchPhrase) throws FileNotFoundException {
-        // TODO exception handling
+        // TODO exceptions handling
         Card[] searchRes = null;
 
         try (ObjectInputStream searchStream = new ObjectInputStream(new FileInputStream(concreteLangSearchFile))) {
