@@ -3,6 +3,9 @@ package com.name.client;
 import com.name.client.dataprovider.ClientFilesDataProvider;
 import com.name.client.dataprovider.IClientDataProvider;
 import com.name.client.exceptions.ServerSideException;
+import com.name.client.menu.Menu;
+import com.name.client.menu.commands.RestoreDataStorageCommand;
+import com.name.client.menu.commands.TranslatePhraseCommand;
 import com.name.common.util.REQUEST;
 
 import java.io.*;
@@ -10,31 +13,37 @@ import java.net.InetAddress;
 import java.net.Socket;
 import java.nio.file.FileAlreadyExistsException;
 import java.util.ArrayList;
+import java.util.Scanner;
 
 public class Client {
     private final static int SERVER_PORT = 8050;
     private final static String TEMP_DIR = "buffer";
-
-    private final static IClientDataProvider dataProvider = ClientFilesDataProvider.getInstance();
+    private final static IClientDataProvider DATA_PROVIDER = ClientFilesDataProvider.getInstance();
+    private final static Scanner KEYBOARD_INPUT = new Scanner(System.in);
 
     public static void main(String[] args) {
-        checkDataIntegrity();
+
+        Menu mainMenu = new Menu("Main Menu", KEYBOARD_INPUT);
+        mainMenu.addItem(new TranslatePhraseCommand("Translate phrase", DATA_PROVIDER, KEYBOARD_INPUT));
+        mainMenu.addItem(RestoreDataStorageCommand.getInstance());
+
+        mainMenu.interactWithUser();
     }
 
-    private static void checkDataIntegrity() {
+     public static void checkDataIntegrity() {
         // Get list of needed files
-        ArrayList<String> namesOfNeededFiles = dataProvider.getNamesOfNeededFiles();
+        ArrayList<String> namesOfNeededFiles = DATA_PROVIDER.getNamesOfNeededFiles();
 
         // If list of needed files isn't empty
         if (!namesOfNeededFiles.isEmpty()) {
             for (String currentFileName : namesOfNeededFiles) {
                 // TODO add class for classes of get request
-                dataProvider.pushFile(getFile("base", currentFileName));
+                DATA_PROVIDER.pushFile(getFile("base", currentFileName));
             }
         }
     }
 
-    private static File getFile(String fileClass, String fileName) {
+    static File getFile(String fileClass, String fileName) {
 
         File file = null;
         byte[] fileInBytes;

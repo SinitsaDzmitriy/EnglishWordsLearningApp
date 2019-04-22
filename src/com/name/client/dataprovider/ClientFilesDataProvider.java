@@ -46,12 +46,12 @@ public class ClientFilesDataProvider extends AClientFilesDataProvider {
      * field matches with the given phrase; otherwise, <tt>null</tt>
      */
     @Override
-    public Card[] find(String phrase) throws FileNotFoundException {
+    public Card[] find(String phrase) throws IOException {
         Card[] findRes = null;
 
         if (phrase != null) {
             // Remove spaces at the edges
-            phrase = phrase.trim();
+            phrase = phrase.trim().toLowerCase();
 
             // Search in case if search phrase in English
             if (Pattern.matches("[\\p{Alpha}\\s-]+", phrase)) {
@@ -74,49 +74,67 @@ public class ClientFilesDataProvider extends AClientFilesDataProvider {
      *          matches with the given phrase. Otherwise, <tt>null</tt>
      * @throws  FileNotFoundException if one of the files from <tt>Data Storage</tt> wasn't found.
      *          {@code String} message that can be obtained through{@code getMessage()} method
-     *          is a name of this file, so it ca
+     *          is a name of this file
      */
-    private Card[] search(File concreteLangSearchFile, String searchPhrase) throws FileNotFoundException {
+    private Card[] search(File concreteLangSearchFile, String searchPhrase) throws IOException {
         // TODO exceptions handling
         Card[] searchRes = null;
+        ObjectInputStream searchStream;
+        ArrayList<SearchItem> searchList;
 
-        try (ObjectInputStream searchStream = new ObjectInputStream(new FileInputStream(concreteLangSearchFile))) {
-            // TODO [?] How can I handle with it in a proper way?
-            ArrayList<SearchItem> searchList = (ArrayList<SearchItem>) searchStream.readObject();
+        try {
 
-            // Get index of SearchItem object whose field phrase matches with searchPhrase
-            // Binary search is used in SearchList
+            try {
+
+                searchStream = new ObjectInputStream(new BufferedInputStream(new FileInputStream(concreteLangSearchFile)));
+                searchList = (ArrayList<SearchItem>) searchStream.readObject();
+
+            } catch (FileNotFoundException e) {
+                // Pass a name of a lang_search file that wasn't found to a calling procedure
+                throw new FileNotFoundException(concreteLangSearchFile.getName());
+            } catch (IOException e) {
+                // Log Imitation
+                System.err.println("[Log]IOException: " +
+                        concreteLangSearchFile.getName() + " file reading failure");
+                // Throw an IOException into outer try-catch block
+                throw e;
+            }
+
+            /*
+             * Get index of SearchItem object whose field phrase matches with searchPhrase
+             * Binary search is used in SearchList
+             */
+
             int searchPhraseIndex = Collections.binarySearch(searchList,
                     new SearchItem(searchPhrase),
                     Comparator.comparing(SearchItem::getPhrase));
 
             if (searchPhraseIndex >= 0) {
                 ArrayList<Integer> IDs = searchList.get(searchPhraseIndex).getIdes();
-                int numOfIDs = IDs.size();
-                ArrayList<Card> cardsInList = new ArrayList<>();
+                ArrayList<Card> listOfCards = new ArrayList<>();
 
-                // TODO [?] It's not effective to use loop for, isn't it?
-                for(int i = 0; i < numOfIDs; ++i) {
-                    cardsInList.add(read(IDs.get(i)));
+                for (int ID: IDs) {
+                    listOfCards.add(read(ID));
                 }
 
-                cardsInList.toArray(searchRes = new Card[cardsInList.size()]);
+                listOfCards.toArray(searchRes = new Card[listOfCards.size()]);
             }
-        } catch (FileNotFoundException e) {
-            // TODO Check English in this commentary
-            // TODO Send a query to a Server to restore a not found file
-            // Send a name of a not found file to a calling procedure to restore it from a Server
-            throw new FileNotFoundException(concreteLangSearchFile.getName());
-        } catch (ClassNotFoundException e) {
-            System.err.println("Class" + e.getMessage() + "wasn't found.");
         } catch (IOException e) {
-            System.err.println("IOException occurred while reading " + concreteLangSearchFile.getName() + " file");
+            /*
+             * Up an existing IOException one level higher
+             * This catch block captures FileNotFoundException as well
+             */
+            throw e;
+        } catch (ClassNotFoundException e) {
+            // Log Imitation
+            System.err.println("[Log]ClassNotFoundException: class " + e.getMessage() + " wasn't found.");
+            throw new IOException(e);
         }
         return searchRes;
     }
 
-    private Card read(int entryNum) throws FileNotFoundException {
-        Card card = null;
+    private Card read(int entryNum) throws IOException {
+        Card card;
 
         RandomAccessFile dataStream = null;
         RandomAccessFile indexStream = null;
@@ -152,13 +170,14 @@ public class ClientFilesDataProvider extends AClientFilesDataProvider {
             card = new Card(cardFieldsInBytes);
 
         } catch (FileNotFoundException e) {
-            // TODO Send a query to a Server to restore a not found file
-            // Exception from newRandomAccessReader(File, String) method
-            // Its message contains name of file that doesn't exist
+            // Up an existing FileNotFoundException one level higher
             throw e;
         } catch (IOException e) {
-            System.err.println("IOException occurred while" + files[FIELDS].getName());
-            System.err.print(" and " + files[INDEX].getName() + " files reading");
+            // Log Imitation
+            System.err.println("[Log]IOException: " + files[FIELDS].getName() +
+                    " or " + files[INDEX].getName() + " file reading failure");
+            // Up an existing IOException one level higher
+            throw e;
         } finally {
             closeRandomAccessFile(dataStream, files[FIELDS]);
             closeRandomAccessFile(indexStream, files[INDEX]);
@@ -171,10 +190,8 @@ public class ClientFilesDataProvider extends AClientFilesDataProvider {
         try {
             randomAccessStream = new RandomAccessFile(file, "r");
         } catch (FileNotFoundException e) {
-            // TODO Send a query to a Server to restore a not found file
-            String fileName = file.getName();
-            System.err.println("File " + fileName + " wasn't found.");
-            throw new FileNotFoundException(fileName);
+            // Pass a name of a file that wasn't found to a calling procedure
+            throw new FileNotFoundException(file.getName());
         }
         return randomAccessStream;
     }
@@ -185,8 +202,9 @@ public class ClientFilesDataProvider extends AClientFilesDataProvider {
                 randomAccessStream.close();
             }
         } catch (IOException e) {
-            System.err.println("IOException occurred while closing a stream tied with " + tiedFile.getName() + " file.");
-            System.err.println("Therefore, system resources associated with this stream weren't released.");
+            System.err.println("IOException: a stream tied to " + tiedFile.getName() +
+                    " file wasn't closed correctly." +
+                    "\nSystem resources associated with it weren't released.");
         }
     }
 

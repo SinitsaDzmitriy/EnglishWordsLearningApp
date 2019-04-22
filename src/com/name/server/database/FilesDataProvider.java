@@ -1,4 +1,4 @@
-package com.name.database;
+package com.name.server.database;
 
 import com.name.common.entities.Card;
 

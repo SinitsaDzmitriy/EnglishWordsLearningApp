@@ -1,5 +1,6 @@
 package com.name.server;
 
+import com.name.common.util.REQUEST;
 import com.name.server.dataprovider.IServerDataProvider;
 import com.name.server.dataprovider.ServerFilesDataProvider;
 
@@ -8,14 +9,11 @@ import java.net.ServerSocket;
 import java.net.Socket;
 
 public class Server {
-    // private final IServerVerifier VERIFIER = SimpleVerifier.getInstance();
-    private final static IServerDataProvider DATA_PROVIDER = ServerFilesDataProvider.getInstance();
-
     private final static int SERVER_PORT = 8050;
-    private final static String REQUEST_SEPARATOR = " ";
+    private final static IServerDataProvider DATA_PROVIDER = ServerFilesDataProvider.getInstance();
+    // private final IServerVerifier VERIFIER = SimpleVerifier.getInstance();
 
-    private Server() {
-    }
+    private Server() {}
 
     public static void main(String[] args) {
         try (ServerSocket serverSocket = new ServerSocket(SERVER_PORT, 5)) {
@@ -45,7 +43,7 @@ public class Server {
                 socketOutputStream = new ObjectOutputStream(CLIENT_SOCKET.getOutputStream());
 
                 String request = (String) socketInputStream.readObject();
-                String[] splitRequest = request.split(REQUEST_SEPARATOR);
+                String[] splitRequest = request.split(REQUEST.SEPARATOR);
 
                 switch (splitRequest[0]) {
                     case "get":

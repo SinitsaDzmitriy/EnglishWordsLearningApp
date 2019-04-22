@@ -3,7 +3,7 @@ package com.name.client.dataprovider;
 import com.name.common.entities.Card;
 
 import java.io.File;
-import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.util.ArrayList;
 
 abstract public class AClientFilesDataProvider implements IClientDataProvider {
@@ -35,5 +35,5 @@ abstract public class AClientFilesDataProvider implements IClientDataProvider {
         }
     }
 
-    abstract public Card[] find(String text) throws FileNotFoundException;
+    abstract public Card[] find(String text) throws IOException;
 }
