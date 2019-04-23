@@ -27,12 +27,6 @@ public class Card implements Serializable {
     public String getTranslation() {
         return translation;
     }
-    public int getWordLength() {
-        return word.length();
-    }
-    public int getTranslationLength() {
-        return translation.length();
-    }
     public String toString() {
         return word + " - " + translation;
     }

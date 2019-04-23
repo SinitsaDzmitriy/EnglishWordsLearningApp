@@ -5,16 +5,16 @@ import java.util.ArrayList;
 
 public class SearchItem implements Serializable {
     private String phrase;
-    private ArrayList<Integer> ides;
+    private ArrayList<Integer> IDs;
 
     public SearchItem (String phrase) {
         this.phrase = phrase;
-        this.ides = new ArrayList<>();
+        this.IDs = new ArrayList<>();
     }
 
     public String getPhrase() { return phrase; }
 
-    public ArrayList<Integer> getIdes() { return ides; }
+    public ArrayList<Integer> getIDs() { return IDs; }
 
     @Override
     public boolean equals(Object anObject) {
@@ -33,11 +33,11 @@ public class SearchItem implements Serializable {
         return phrase.hashCode();
     }
 
-    public void addCardId(int id){
-        ides.add(id);
+    public void addCardID(int ID){
+        IDs.add(ID);
     }
 
     public String toString() {
-        return phrase + " " + ides.toString();
+        return phrase + " " + IDs.toString();
     }
 }

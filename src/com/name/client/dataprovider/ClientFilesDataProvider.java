@@ -14,7 +14,10 @@ public class ClientFilesDataProvider extends AClientFilesDataProvider {
     private static final int NUM_OF_FILES = 4;
     private static final int NUM_OF_CARD_FIELDS = 2;
 
-    // TODO pack in enum
+    // 0: contains fields of cards written one by one
+    // 1: contains positions of this fields as an array of longs
+    // 2: contains ArrayList<SearchItem>, where written words (phrases) in Russian and indexes of associated Cards
+    // 3: contains ArrayList<SearchItem>, where written words (phrases) in English and indexes of associated Cards
     private static final int FIELDS = 0;
     private static final int INDEX = 1;
     private static final int ENG_SEARCH = 2;
@@ -38,7 +41,6 @@ public class ClientFilesDataProvider extends AClientFilesDataProvider {
         }
         return instance;
     }
-
 
     /**
      * @param phrase the {@code String} to search in data storage.
@@ -110,7 +112,7 @@ public class ClientFilesDataProvider extends AClientFilesDataProvider {
                     Comparator.comparing(SearchItem::getPhrase));
 
             if (searchPhraseIndex >= 0) {
-                ArrayList<Integer> IDs = searchList.get(searchPhraseIndex).getIdes();
+                ArrayList<Integer> IDs = searchList.get(searchPhraseIndex).getIDs();
                 ArrayList<Card> listOfCards = new ArrayList<>();
 
                 for (int ID: IDs) {

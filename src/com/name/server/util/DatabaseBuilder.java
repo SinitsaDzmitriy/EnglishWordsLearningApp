@@ -1,17 +1,18 @@
-package com.name.server.database;
+package com.name.server.util;
 
 import com.name.common.entities.SearchItem;
 import com.name.common.entities.Card;
 
 
 import java.io.*;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 public class DatabaseBuilder {
-    // System info:
+    // Groups in RegEx:
     private static final int WORD_GROUP = 2;
     private static final int TRANSLATION_GROUP = 4;
 
@@ -22,26 +23,18 @@ public class DatabaseBuilder {
     private static final File rusSearch = new File("server\\rus_search.data");
     private static final File engSearch = new File("server\\eng_search.data");
 
-    public static void buildDatabase() throws FileNotFoundException {
+    public static void main(String[] args) {
         try {
             writeCardArrayInFiles(convertTXT());
         } catch (FileNotFoundException e) {
-            throw e;
+            System.err.println("FileNotFoundException: remote Data Storage build failure.");
         }
     }
 
-    // [?] Нужно ли обрабатывать исключение FileNotFoundException, если существование файла проверяется методом .exists()?
-    // [?] Это нормально возвращать null? Альтернатива new Card[0]
-    // [?] Корректна ли обработка в стиле вывод сообщения через поток System.err в catch?
-
-    /**
-     * @return null if ...
-     * @throws FileNotFoundException
-     */
     private static Card[] convertTXT() throws FileNotFoundException {
         ArrayList<Card> packOfCards = new ArrayList<>();
 
-        try (BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(source), "UTF-16"))) {
+        try (BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(source), StandardCharsets.UTF_16))) {
             // Search substrings like:
             // id   1stWord {(2ndWord, 3rdWord)}   [transcription]   translation
             // {...} - optional part,
@@ -95,7 +88,7 @@ public class DatabaseBuilder {
             rusSearch.createNewFile();
             engSearch.createNewFile();
         } catch (IOException e) {
-            System.err.println("Creating database files exceptions");
+            System.err.println("Creating util files exceptions");
         }
 
         try (RandomAccessFile dataStream = new RandomAccessFile(data, "rw");
@@ -120,14 +113,14 @@ public class DatabaseBuilder {
 
                 for (SearchItem item : rusList) {
                     if (item.getPhrase().equals(cards[i].getTranslation())) {
-                        item.addCardId(i);
+                        item.addCardID(i);
                         break;
                     }
                 }
 
                 for (SearchItem item : engList) {
                     if (item.getPhrase().equals(cards[i].getWord())) {
-                        item.addCardId(i);
+                        item.addCardID(i);
                         break;
                     }
                 }

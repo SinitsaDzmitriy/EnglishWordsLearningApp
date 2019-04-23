@@ -43,7 +43,7 @@ public class Client {
         }
     }
 
-    static File getFile(String fileClass, String fileName) {
+    public static File getFile(String fileClass, String fileName) {
 
         File file = null;
         byte[] fileInBytes;

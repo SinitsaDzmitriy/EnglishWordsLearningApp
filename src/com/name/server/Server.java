@@ -32,7 +32,7 @@ public class Server {
         private ObjectInputStream socketInputStream;
         private ObjectOutputStream socketOutputStream;
 
-        RequestProcessingThread(Socket clientSocket) {
+        private RequestProcessingThread(Socket clientSocket) {
             CLIENT_SOCKET = clientSocket;
         }
 
@@ -93,7 +93,7 @@ public class Server {
 
                 // If file with such name wasn't found
                 if (requestedFile == null) {
-                    throw new FileNotFoundException("FileNotFoundException: file " + fileName + " wasn't found.");
+                    throw new FileNotFoundException("FileNotFoundException: " + fileName + " file wasn't found.");
                 } else {
                     int requestedFileLength = ((int) requestedFile.length() / 1024 + 1) * 1024;
                     byte[] requestedFileInBytes = new byte[requestedFileLength];

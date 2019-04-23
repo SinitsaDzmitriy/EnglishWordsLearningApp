@@ -3,7 +3,7 @@ package com.name.client.menu.commands;
 abstract public class ACommand {
     public final String NAME;
 
-    ACommand(String name) {
+    protected ACommand(String name) {
         NAME = name;
     }
 
